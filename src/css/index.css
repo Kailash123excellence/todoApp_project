@@ -131,3 +131,11 @@
   text-Align: center;
   font-size: 40px;
 }
+
+.edit_task {
+  background-color: rgb(208, 206, 216);
+  color: rgb(45, 47, 188);
+  margin-left: 3%;
+  border: none;
+  border-radius: 10px;
+}

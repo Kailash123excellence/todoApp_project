@@ -1,7 +1,11 @@
 import React from "react";
 import { useState } from "react";
 import "../css/index.css";
-import Header from "./Header";
+import Header from "./CommonComponent/Header";
+import TodoStatusButton from "./CommonComponent/TodoStatusButton";
+import AddNewTodoForm from "./CommonComponent/AddNewTodoForm";
+import EventButton from "./CommonComponent/EventButton";
+import StatusBox from "./CommonComponent/StatusBox";
 
 export default function ToDOList(props) {
   const [todoList, setTodoList] = useState([]);
@@ -12,20 +16,24 @@ export default function ToDOList(props) {
 
   const [Total_Task, setTotal_Task] = useState(todoList);
 
-  function handleSubmit(e) {
+  const [editTable, setEditTable] = useState("");
+
+  function SubmitHandler(e) {
     e.preventDefault();
-      todoList.push(newTodoList);
-      const name = e.target.name;
-      const value = e.target.value;
-      setNewTodoList({
-        ...value,
-        [name]: value,
-      });
+    todoList.push(newTodoList);
+    
+    const {
+      target: { name, value },
+    } = e;
+    
+    setNewTodoList({
+      ...value,
+      [name]: value,
+    });
   }
 
-  function addNew(e) {
-    setNewTodoList({ task: e.target.value });
-    
+  function addNewTask(e) {
+    setNewTodoList({task:e.target.value});
   }
 
   const handleOnChange = (index) => {
@@ -43,61 +51,77 @@ export default function ToDOList(props) {
     setTodoList(updatedStatus);
   };
 
-  function Complete() {
-    const Completed_task = todoList.filter((value) => {
-      return value.status == true;
-    });
-    if (Completed_task.length > 0) {
-      setTotal_Task(Completed_task);
-      
-    } else {
-      alert("No task Completed yet");
+
+  // TaskStatusType checking
+  function TaskStatusChecking(state) {
+    const Complete_task=todoList.filter((val)=>{
+      if(state=="complete"){
+        return val.status ==true;
+      }else{
+        return val.status !== true;
+      }
+    })
+    if(Complete_task.length>0){
+      setTotal_Task(Complete_task)
+    }else{
+      alert("all task Either Completed or Incomplete")
     }
   }
 
-  function Incomplete() {
-    const InCompleted = todoList.filter((val) => {
-      return val.status !== true;
-    });
-    if (InCompleted.length > 0) {
-      setTotal_Task(InCompleted);
-    
-    } else {
-      alert("All Task Completed");
-    }
-  }
 
   function Total() {
-    const totalTask = todoList.map((val) => {
+    const totalTask = todoList.map((val, index) => {
       return val;
     });
     setTotal_Task(totalTask);
-    
   }
 
   function Delete_Task(index) {
     const DeletedItem = Total_Task.filter((val, i) => index !== i);
     setTotal_Task(DeletedItem);
-
+    
     const DeletedItems = todoList.filter((val, i) => index !== i);
     setTodoList(DeletedItems);
   }
 
+  function handleEdit(index) {
+    setEditTable((prevState) => {
+      if (prevState === index) {
+        return "";
+      } else {
+        return index;
+      }
+    });
+  }
+
+  function edit_Task(e, index) {
+    const UpdateEdit = todoList.map((val, i) => {
+      if (i === index) {
+        return {
+          ...val,
+          task: e.target.value,
+        };
+      }
+      return val;
+    });
+    setTotal_Task(UpdateEdit);
+  }
+
   return (
     <>
+    
       <div className="form-check1 ">
         {/* Todo header */}
         <div className="header">
           <Header value={"TaskName"} />
-          <Header value={"Delete"} />
+          <Header value={"Delete /xx Edit"} />
           <Header value={"Status"} />
         </div>
-
 
         {/* todo task filter */}
         {Total_Task.map((value, index) => {
           return (
-            <div className="inputData">
+            <div className="inputData" key={index}>
               <input
                 className="form-check-input"
                 type="checkbox"
@@ -106,21 +130,35 @@ export default function ToDOList(props) {
                 id="flexCheckDefault"
                 onChange={() => handleOnChange(index)}
               />
-              <label className="form-check-label">{value.task}</label>
-              <button
-                className="delete_task"
-                onClick={() => Delete_Task(index)}
-              >
-                <span class="material-symbols-outlined">delete_forever</span>
-              </button>
-              {value.status == true ? (
-                <p className="complete" id="checkComplete">
-                  complete
-                </p>
+              {editTable === index ? (
+                <input
+                  value={value.task}
+                  type="text"
+                  onChange={(e) => edit_Task(e, index)}
+                />
               ) : (
-                <p className="Incomplete" id="checkComplete">
-                  Incomplete
-                </p>
+                <label className="form-check-label">{value.task}</label>
+              )}
+
+              {/* Delete Button */}
+              <EventButton
+                className={"delete_task"}
+                name={"Delete"}
+                UpdateEvent={() => Delete_Task(index)}
+              />
+
+              {/* Edit Button */}
+              <EventButton
+                className={"edit_task"}
+                name={"Edit"}
+                UpdateEvent={() => handleEdit(index)}
+              />
+
+              {/* Status complete or incomplete button */}
+              {value.status == true ? (
+                <StatusBox className="complete" name={"Complete"} />
+              ) : (
+                <StatusBox className="Incomplete" name={"Incomplete"} />
               )}
             </div>
           );
@@ -131,21 +169,15 @@ export default function ToDOList(props) {
 
       {todoList.length > 0 ? (
         <div className="collection">
-          {/* <Task_Status item="Complete" onClick={Complete} />
-          <Task_Status item="Incomplete" onClick={Incomplete} />
-          <Task_Status item="Total" onClick={Total} /> */}
-
-          <button className="getbutton" onClick={Complete}>
-            Complete
-          </button>
-
-          <button className="getbutton" onClick={Incomplete}>
-            Incomplete
-          </button>
-
-          <button className="getbutton" onClick={Total}>
-            Total Task
-          </button>
+          <TodoStatusButton
+            name="Complete"
+            Completed_Task={()=>TaskStatusChecking("complete")}
+          />
+          <TodoStatusButton
+            name="Incomplete"
+            Completed_Task={()=>TaskStatusChecking("Incomplete")}
+          />
+          <TodoStatusButton name="Total" Completed_Task={() => Total()} />
         </div>
       ) : (
         <h3 className="title_BeforeTask">No Task yet</h3>
@@ -153,23 +185,12 @@ export default function ToDOList(props) {
 
       {/* add new todo form */}
 
-      <form className="inputFrom" onSubmit={(e) => handleSubmit(e)}>
-        <p className="form_heading">Todo</p>
-        <input
-          type="text"
-          name="task"
-          checked={(newTodoList.status = false)}
-          className={`form-control`}
-          id="exampleInput"
-          required
-          value={newTodoList.task ? newTodoList.task : ""}
-          placeholder="Your Todo...."
-          onChange={addNew}
-        />
-        <button className="btn border mt-3" type="submit">
-          Submit
-        </button>
-      </form>
+      <AddNewTodoForm
+        handleSubmit={(e) => SubmitHandler(e)}
+        todoValue={newTodoList.task}
+        todoDefaultStatus={(newTodoList.status = false)}
+        addNew={addNewTask}
+      />
     </>
   );
 }

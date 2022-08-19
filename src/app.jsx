@@ -1,6 +1,6 @@
 import React, { useState } from "react";
-import "../css/index.css";
-import ToDoList from "./TodoList";
+import './css/index.css'
+import ToDoList from './component/TodoList'
 export default function App() {
   return (
     <>
